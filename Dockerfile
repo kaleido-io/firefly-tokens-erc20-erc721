@@ -2,32 +2,29 @@ ARG BASE_IMAGE
 ARG BUILD_IMAGE
 
 FROM ${BUILD_IMAGE} as build
-USER node
 WORKDIR /home/node
-ADD --chown=node:node package*.json ./
+ADD package*.json ./
 RUN npm install
-ADD --chown=node:node . .
+ADD . .
 RUN npm run build
 
 FROM ${BUILD_IMAGE} as solidity-build
-RUN apk update && apk add --no-cache python3 alpine-sdk
-USER node
 WORKDIR /home/node
-ADD --chown=node:node ./samples/solidity/package*.json ./
+ADD ./samples/solidity/package*.json ./
 RUN npm install
-ADD --chown=node:node ./samples/solidity .
+ADD ./samples/solidity .
 RUN npx hardhat compile
 
 FROM alpine:3.19 AS SBOM
 WORKDIR /
 ADD . /SBOM
+ADD ./.trivyignore /.trivyignore
 RUN apk add --no-cache curl 
 RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.3
 RUN trivy fs --format spdx-json --output /sbom.spdx.json /SBOM
 RUN trivy sbom /sbom.spdx.json --severity UNKNOWN,HIGH,CRITICAL --exit-code 1
 
 FROM $BASE_IMAGE
-RUN apk add curl=~8.12 jq=~1.7
 RUN mkdir -p /app/contracts/source \
     && chgrp -R 0 /app/ \
     && chmod -R g+rwX /app/ \
@@ -48,6 +45,7 @@ WORKDIR /app
 COPY --from=build --chown=1001:0 /home/node/dist ./dist
 COPY --from=build --chown=1001:0 /home/node/package.json /home/node/package-lock.json ./
 COPY --from=SBOM /sbom.spdx.json /sbom.spdx.json
+COPY --from=SBOM /.trivyignore /.trivyignore
 
 RUN npm install --production
 EXPOSE 3000
