@@ -85,6 +85,8 @@
     "testEnvironment": "node"
   },
   "overrides": {
-    "ws": ">=8.17.1"
+    "ws": ">=8.17.1",
+    "multer": "2.0.2",
+    "form-data": "4.0.4"
   }
 }
