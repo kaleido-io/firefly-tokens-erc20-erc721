@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 ARG BUILD_IMAGE
 
-FROM ${BUILD_IMAGE} as build
+FROM ${BUILD_IMAGE} AS build
 USER node
 WORKDIR /home/node
 ADD --chown=node:node package*.json ./
@@ -9,7 +9,7 @@ RUN npm install
 ADD --chown=node:node . .
 RUN npm run build
 
-FROM ${BUILD_IMAGE} as solidity-build
+FROM ${BUILD_IMAGE} AS solidity-build
 RUN apk update && apk add --no-cache python3 alpine-sdk
 USER node
 WORKDIR /home/node
@@ -18,16 +18,16 @@ RUN npm install
 ADD --chown=node:node ./samples/solidity .
 RUN npx hardhat compile
 
-FROM alpine:3.19 AS SBOM
+FROM alpine:3.19 AS sbom
 WORKDIR /
 ADD . /SBOM
 RUN apk add --no-cache curl 
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.3
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin latest
 RUN trivy fs --format spdx-json --output /sbom.spdx.json /SBOM
 RUN trivy sbom /sbom.spdx.json --severity UNKNOWN,HIGH,CRITICAL --exit-code 1
 
 FROM $BASE_IMAGE
-RUN apk add curl=~8.12 jq=~1.7
+RUN apk add --no-cache curl jq
 RUN mkdir -p /app/contracts/source \
     && chgrp -R 0 /app/ \
     && chmod -R g+rwX /app/ \
