@@ -6,7 +6,7 @@ WORKDIR /home/node
 ADD package*.json ./
 RUN npm install
 ADD . .
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
 FROM ${BUILD_IMAGE} as solidity-build
 WORKDIR /home/node
@@ -36,7 +36,6 @@ RUN mkdir -p /app/contracts/source \
 WORKDIR /app/contracts/source
 USER 1001
 COPY --from=solidity-build --chown=1001:0 /home/node/contracts /home/node/package*.json ./
-RUN npm install --production
 WORKDIR /app/contracts
 COPY --from=solidity-build --chown=1001:0 /home/node/artifacts/contracts/TokenFactory.sol/TokenFactory.json ./
 # We also need to keep copying it to the old location to maintain compatibility with the FireFly CLI
@@ -44,9 +43,9 @@ COPY --from=solidity-build --chown=1001:0 /home/node/artifacts/contracts/TokenFa
 WORKDIR /app
 COPY --from=build --chown=1001:0 /home/node/dist ./dist
 COPY --from=build --chown=1001:0 /home/node/package.json /home/node/package-lock.json ./
+COPY --from=build --chown=1001:0 /home/node/node_modules ./node_modules
 COPY --from=SBOM /sbom.spdx.json /sbom.spdx.json
 COPY --from=SBOM /.trivyignore /.trivyignore
 
-RUN npm install --production
 EXPOSE 3000
 CMD ["node", "dist/src/main"]
