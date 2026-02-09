@@ -47,6 +47,5 @@ COPY --from=build --chown=1001:0 /home/node/node_modules ./node_modules
 COPY --from=SBOM /sbom.spdx.json /sbom.spdx.json
 COPY --from=SBOM /.trivyignore /.trivyignore
 
-RUN npm install --production
 EXPOSE 3000
 CMD ["node", "dist/src/main"]
