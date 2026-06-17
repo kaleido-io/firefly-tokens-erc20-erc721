@@ -85,9 +85,9 @@
     "testEnvironment": "node"
   },
   "overrides": {
-    "ws": ">=8.17.1",
+    "ws": ">=8.21.0",
     "multer": "2.1.1",
-    "form-data": "4.0.4",
+    "form-data": ">=4.0.6",
     "lodash": "4.18.0",
     "path-to-regexp": "8.4.0"
   }
