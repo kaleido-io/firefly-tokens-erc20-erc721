@@ -18,6 +18,10 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.2"
+    "@openzeppelin/contracts": "^5.0.2",
+    "axios": "1.19.0",
+    "form-data": "4.0.6",
+    "multer": "2.2.0",
+    "ws": "8.21.2"
   }
 }
